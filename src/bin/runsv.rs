@@ -1,16 +1,17 @@
 use anyhow::Context;
-use tracing::{debug, error, info, instrument};
+use tracing::{debug, error, info};
 
-use anyhow::{Error, anyhow};
+use anyhow::anyhow;
 
-use std::ffi::CString;
 use std::thread;
 use std::time::Duration;
 use std::{env, ffi::OsString};
 
 use nix::sys::signal::{self, SigSet, Signal};
 use nix::sys::wait::{WaitStatus, waitpid};
-use nix::unistd::{ForkResult, Pid, execve, fork};
+use nix::unistd::Pid;
+
+use runit::{Status, launch_service};
 
 struct Service {
     child_pid: Option<Pid>,
@@ -19,13 +20,6 @@ struct Service {
     max_restart: u16,
     path: String,
     current_delay: u64,
-}
-
-#[derive(PartialEq)]
-enum Status {
-    Alive,
-    Dead,
-    NotStarted,
 }
 
 impl Service {
@@ -143,30 +137,5 @@ fn main() -> anyhow::Result<()> {
             service.child_pid = Some(launch_service(service.path.as_str())?);
             service.status = Status::Alive;
         }
-    }
-}
-
-#[instrument]
-fn launch_service(path: &str) -> anyhow::Result<Pid, Error> {
-    match unsafe { fork() } {
-        Ok(ForkResult::Parent { child, .. }) => Ok(child),
-        Ok(ForkResult::Child) => {
-            //Reset the signal mask so the child can actually receive signals!
-            let empty_mask = SigSet::empty();
-            if let Err(e) =
-                signal::pthread_sigmask(signal::SigmaskHow::SIG_SETMASK, Some(&empty_mask), None)
-            {
-                eprintln!("Child failed to reset signal mask: {}", e);
-                std::process::exit(1);
-            }
-
-            let path = CString::new(path).unwrap();
-            let args = [CString::new("run").unwrap()];
-            let env = [CString::new("PATH=/bin").unwrap()];
-            execve(&path, &args, &env).context("Child process failed to execve: ")?;
-
-            Err(anyhow::Error::msg("execve failed"))
-        }
-        Err(_) => Err(anyhow!("Fork failed")),
     }
 }

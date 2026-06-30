@@ -96,7 +96,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "runsv"
+name = "runit"
 version = "0.1.0"
 dependencies = [
  "anyhow",
