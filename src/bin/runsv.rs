@@ -1,53 +1,14 @@
 use anyhow::Context;
 use tracing::{debug, error, info};
 
-use anyhow::anyhow;
-
 use std::thread;
 use std::time::Duration;
-use std::{env, ffi::OsString};
 
 use nix::sys::signal::{self, SigSet, Signal};
 use nix::sys::wait::{WaitStatus, waitpid};
 use nix::unistd::Pid;
 
-use runit::{Status, launch_service};
-
-struct Service {
-    child_pid: Option<Pid>,
-    status: Status,
-    restart_count: u16,
-    max_restart: u16,
-    path: String,
-    current_delay: u64,
-}
-
-impl Service {
-    fn build() -> anyhow::Result<Service> {
-        let args: Vec<OsString> = env::args_os().collect();
-        if args.len() != 2 {
-            error!("usage: cargo run -- /path/to/service");
-            return Err(anyhow!("Invalid arguements provided"));
-        }
-        let service_path = args
-            .get(1)
-            .expect("arguement missing")
-            .to_str()
-            .unwrap()
-            .to_string();
-
-        let max_restart = env::var("MAX_RESTART").context("No MAX_RESTART env variable found")?;
-
-        Ok(Service {
-            restart_count: 0,
-            max_restart: max_restart.parse()?,
-            child_pid: None,
-            path: service_path,
-            status: Status::NotStarted,
-            current_delay: 1,
-        })
-    }
-}
+use runit::{Service, Status, launch_service};
 
 fn main() -> anyhow::Result<()> {
     tracing_subscriber::fmt::init();
