@@ -1,0 +1,13 @@
+[package]
+name = "runit"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1.0.103"
+libc = "0.2.186"
+nix = { version = "0.31.3", features = ["poll", "process", "signal"] }
+serde = { version = "1.0.229", features = ["derive"] }
+serde_json = "1.0.154"
+tracing = "0.1.44"
+tracing-subscriber = "0.3.23"
