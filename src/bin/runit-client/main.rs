@@ -25,6 +25,9 @@ fn main() -> ExitCode {
 }
 
 fn run() -> anyhow::Result<ExitCode> {
+    //Load variables from the .env file in the current directory, if present
+    dotenvy::dotenv().ok();
+
     let command = parse_args(std::env::args().skip(1))?;
 
     let listener_path = std::env::var("LISTENER_PATH")

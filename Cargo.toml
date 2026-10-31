@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 anyhow = "1.0.103"
+dotenvy = "0.15.7"
 libc = "0.2.186"
 nix = { version = "0.31.3", features = ["poll", "process", "signal"] }
 serde = { version = "1.0.229", features = ["derive"] }

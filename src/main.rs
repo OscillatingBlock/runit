@@ -11,6 +11,9 @@ use nix::sys::signalfd::SignalFd;
 use crate::orchastrator::Orchastrator;
 
 fn main() -> anyhow::Result<()> {
+    //Load variables from the .env file in the current directory, if present
+    dotenvy::dotenv().ok();
+
     tracing_subscriber::fmt::init();
 
     let config_dir: PathBuf = std::env::var("CONFIG_DIR")
